@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$Model = $env:OLLAMA_MODEL,
     [string]$BaseUrl = $env:OLLAMA_BASE_URL
 )
@@ -12,6 +12,54 @@ if ([string]::IsNullOrWhiteSpace($BaseUrl)) {
     $BaseUrl = 'http://127.0.0.1:11434'
 }
 $ChatEndpoint = $BaseUrl.TrimEnd('/') + '/api/chat'
+
+function Test-OllamaApi {
+    try {
+        $null = Invoke-RestMethod -Uri ($BaseUrl.TrimEnd('/') + '/api/tags') -TimeoutSec 2
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
+function Start-OllamaServerIfNeeded {
+    if (Test-OllamaApi) {
+        return $true
+    }
+
+    $ollamaExe = 'C:\Users\Hi\AppData\Local\Programs\Ollama\ollama.exe'
+    if (-not (Test-Path -LiteralPath $ollamaExe)) {
+        Write-Host "找不到 Ollama 程序：$ollamaExe" -ForegroundColor Red
+        return $false
+    }
+
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $ollamaExe
+    $startInfo.Arguments = 'serve'
+    $startInfo.WorkingDirectory = Split-Path -Parent $ollamaExe
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.EnvironmentVariables['OLLAMA_MODELS'] = 'D:\OllamaModels'
+
+    try {
+        [void][System.Diagnostics.Process]::Start($startInfo)
+    }
+    catch {
+        Write-Host "启动 Ollama 失败：$($_.Exception.Message)" -ForegroundColor Red
+        return $false
+    }
+
+    for ($attempt = 0; $attempt -lt 20; $attempt++) {
+        if (Test-OllamaApi) {
+            return $true
+        }
+        Start-Sleep -Seconds 1
+    }
+
+    Write-Host '等待 Ollama API 超时。请先打开桌面上的 Ollama，再重新启动智能体。' -ForegroundColor Red
+    return $false
+}
 
 $ToolDefinitions = @(
     @{
@@ -103,6 +151,7 @@ function New-Conversation {
     return ,$messages
 }
 
+if (-not (Start-OllamaServerIfNeeded)) { exit 1 }
 $messages = New-Conversation
 Write-Host "本地 Ollama 智能体已启动：模型 $Model" -ForegroundColor Cyan
 Write-Host '输入 /reset 清空上下文，输入 /exit 退出。' -ForegroundColor DarkGray
@@ -121,6 +170,10 @@ while ($true) {
         continue
     }
 
+    if ($inputText -match '现在几点|当前时间|现在时间|今天几号|今天日期') {
+        Write-Host ('智能体（本机时间）：' + [DateTimeOffset]::Now.ToString('yyyy-MM-dd HH:mm:ss zzz')) -ForegroundColor Green
+        continue
+    }
     $messages.Add(@{ role = 'user'; content = $inputText })
     try {
         $finished = $false
@@ -163,3 +216,4 @@ while ($true) {
         Write-Host '请确认 Ollama 正在运行，并且模型已下载。' -ForegroundColor DarkGray
     }
 }
+

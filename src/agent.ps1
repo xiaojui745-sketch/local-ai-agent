@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Model = $env:OLLAMA_MODEL,
     [string]$BaseUrl = $env:OLLAMA_BASE_URL
 )
@@ -16,7 +16,7 @@ $ChatEndpoint = $BaseUrl.TrimEnd('/') + '/api/chat'
 $ToolDefinitions = @(
     @{
         type = 'function'
-        function = @{
+        'function' = @{
             name = 'get_local_time'
             description = '读取这台电脑当前的本地日期、时间和时区。'
             parameters = @{
@@ -27,7 +27,7 @@ $ToolDefinitions = @(
     },
     @{
         type = 'function'
-        function = @{
+        'function' = @{
             name = 'calculate'
             description = '计算只包含数字、括号和加减乘除或取余运算的数学表达式。'
             parameters = @{
@@ -46,9 +46,7 @@ $ToolDefinitions = @(
 
 $SystemMessage = @{
     role = 'system'
-    content = @'
-你是运行在用户电脑上的中文本地智能体。遇到需要精确计算的问题时调用 calculate；遇到询问当前本地时间时调用 get_local_time。工具结果返回后，结合结果用简洁中文回答。不要声称调用了未提供的工具，也不要把工具调用当成最终答案。
-'@
+    content = '你是运行在用户电脑上的中文本地智能体。需要精确计算时调用 calculate；询问当前本地时间时调用 get_local_time。收到工具结果后，用简洁中文回答。不要声称调用了未提供的工具。'
 }
 
 function Invoke-AgentTool {

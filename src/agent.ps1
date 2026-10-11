@@ -94,7 +94,7 @@ $ToolDefinitions = @(
 
 $SystemMessage = @{
     role = 'system'
-    content = '你是运行在用户电脑上的中文本地智能体。需要精确计算时调用 calculate；询问当前本地时间时调用 get_local_time。收到工具结果后，用简洁中文回答。不要声称调用了未提供的工具。'
+    content = '你是运行在用户电脑上的中文本地智能体。请直接用简洁中文回答用户的问题。你没有可用工具，不要请求或虚构工具调用。时间查询和简单计算由程序在本地处理。'
 }
 
 function Invoke-AgentTool {
@@ -137,7 +137,6 @@ function Invoke-ModelTurn {
     $payload = @{
         model = $Model
         messages = @($Messages.ToArray())
-        tools = $ToolDefinitions
         stream = $false
     }
     $json = ConvertTo-Json -InputObject $payload -Depth 20 -Compress

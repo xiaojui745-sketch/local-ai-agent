@@ -174,6 +174,19 @@ while ($true) {
         Write-Host ('智能体（本机时间）：' + [DateTimeOffset]::Now.ToString('yyyy-MM-dd HH:mm:ss zzz')) -ForegroundColor Green
         continue
     }
+    if ($inputText -match '^\s*(?:请)?(?:帮我)?(?:计算|算一下|算)\s*[:：]?\s*(.+?)\s*[。?？]?\s*$') {
+        $expression = $Matches[1].Trim()
+        Write-Host '[调用工具] calculate（本地）' -ForegroundColor Yellow
+        try {
+            $toolCall = @{ 'function' = @{ name = 'calculate'; arguments = @{ expression = $expression } } }
+            $result = Invoke-AgentTool -ToolCall $toolCall
+            Write-Host "计算结果：$result" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "计算失败：$($_.Exception.Message)" -ForegroundColor Red
+        }
+        continue
+    }
     $messages.Add(@{ role = 'user'; content = $inputText })
     try {
         $finished = $false

@@ -4,7 +4,7 @@
 )
 
 $ErrorActionPreference = 'Stop'
-$AgentVersion = '0.4.2'
+$AgentVersion = '0.4.3'
 
 if ([string]::IsNullOrWhiteSpace($Model)) {
     $Model = 'qwen3:8b'
@@ -190,7 +190,10 @@ while ($true) {
     $messages.Add(@{ role = 'user'; content = $inputText })
     try {
         $assistantMessage = Invoke-ModelTurn -Messages $messages
-        $toolCalls = @($assistantMessage.tool_calls)
+        $toolCalls = @()
+        if ($null -ne $assistantMessage.tool_calls) {
+            $toolCalls = @($assistantMessage.tool_calls)
+        }
         if ($toolCalls.Count -gt 0) {
             Write-Host '模型返回了未启用的工具调用，本轮已停止；请重新提问。' -ForegroundColor Yellow
             $messages.RemoveAt($messages.Count - 1)

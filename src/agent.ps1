@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Model = $env:OLLAMA_MODEL,
     [string]$BaseUrl = $env:OLLAMA_BASE_URL
 )

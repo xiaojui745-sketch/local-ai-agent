@@ -46,3 +46,10 @@
 - 已在 CLI 输入处理处增加本机时间/日期问题的直接分流：常见问法直接读取 Windows 本地时间，不请求模型 API。
 - 使用 Windows PowerShell Parser 对修改后的脚本进行静态语法检查，结果通过。
 - 普通聊天仍需要本机 Ollama 服务和模型 API 正常运行；若依旧出现连接错误，下一步应检查 Ollama 是否在 `127.0.0.1:11434` 监听，以及模型 API 是否可用。
+
+## 2026-10-11 补充：Windows PowerShell 5.1 编码兼容
+
+- 用户反馈双击桌面入口时报 PowerShell 解析错误；截图中的多个行号呈现级联语法错误。
+- 根因是 `src/agent.ps1` 含中文字符串，但此前保存为无 BOM 的 UTF-8；桌面入口调用 Windows PowerShell 5.1，按系统旧编码读取后破坏字符串内容并导致解析失败。
+- 已将脚本保存为带 BOM 的 UTF-8，并使用 Windows PowerShell 5.1 的 Parser 验证通过。
+- Ollama 服务是否运行与本次语法错误无关；脚本修好后，普通模型对话仍需 Ollama 服务正常监听。

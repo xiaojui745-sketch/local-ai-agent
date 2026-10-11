@@ -4,6 +4,7 @@
 )
 
 $ErrorActionPreference = 'Stop'
+$AgentVersion = '0.4.2'
 
 if ([string]::IsNullOrWhiteSpace($Model)) {
     $Model = 'qwen3:8b'
@@ -152,7 +153,7 @@ function New-Conversation {
 
 if (-not (Start-OllamaServerIfNeeded)) { exit 1 }
 $messages = New-Conversation
-Write-Host "本地 Ollama 智能体已启动：模型 $Model" -ForegroundColor Cyan
+Write-Host "本地 Ollama 智能体已启动：模型 $Model（版本 $AgentVersion）" -ForegroundColor Cyan
 Write-Host '输入 /reset 清空上下文，输入 /exit 退出。' -ForegroundColor DarkGray
 
 while ($true) {
@@ -188,41 +189,18 @@ while ($true) {
     }
     $messages.Add(@{ role = 'user'; content = $inputText })
     try {
-        $finished = $false
-        for ($step = 0; $step -lt 6; $step++) {
-            $assistantMessage = Invoke-ModelTurn -Messages $messages
-            $messages.Add($assistantMessage)
-            $toolCalls = @($assistantMessage.tool_calls)
-
-            if ($toolCalls.Count -eq 0) {
-                if (-not [string]::IsNullOrWhiteSpace([string]$assistantMessage.content)) {
-                    Write-Host "智能体：$($assistantMessage.content)" -ForegroundColor Green
-                }
-                $finished = $true
-                break
-            }
-
-            foreach ($toolCall in $toolCalls) {
-                $toolName = [string]$toolCall.function.name
-                Write-Host "[调用工具] $toolName" -ForegroundColor Yellow
-                try {
-                    $toolResult = Invoke-AgentTool -ToolCall $toolCall
-                }
-                catch {
-                    $toolResult = "工具执行失败：$($_.Exception.Message)"
-                }
-                $messages.Add(@{
-                    role = 'tool'
-                    tool_name = $toolName
-                    content = [string]$toolResult
-                })
-            }
+        $assistantMessage = Invoke-ModelTurn -Messages $messages
+        $toolCalls = @($assistantMessage.tool_calls)
+        if ($toolCalls.Count -gt 0) {
+            Write-Host '模型返回了未启用的工具调用，本轮已停止；请重新提问。' -ForegroundColor Yellow
+            $messages.RemoveAt($messages.Count - 1)
+            continue
         }
 
-        if (-not $finished) {
-            Write-Host '本轮工具调用次数达到上限，请缩小问题范围后重试。' -ForegroundColor Yellow
-        }
-    }
+        $messages.Add($assistantMessage)
+        if (-not [string]::IsNullOrWhiteSpace([string]$assistantMessage.content)) {
+            Write-Host "智能体：$($assistantMessage.content)" -ForegroundColor Green
+        }    }
     catch {
         Write-Host "请求失败：$($_.Exception.Message)" -ForegroundColor Red
         Write-Host '请确认 Ollama 正在运行，并且模型已下载。' -ForegroundColor DarkGray

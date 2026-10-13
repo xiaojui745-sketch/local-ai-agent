@@ -62,3 +62,7 @@ git commit -m "Build local Ollama CLI agent"
 ```
 
 配置个人 GitHub 远端后，再推送到自己的仓库。
+
+## Chemistry simulator prototype
+
+The repository also contains a local YOLO apparatus detector and chemistry-animation demo in [chemistry-simulator](chemistry-simulator/README.md). Training metrics and demo outcomes are summarized in [docs/chemistry-simulation/2026-10-13-demo-results.md](docs/chemistry-simulation/2026-10-13-demo-results.md). The project includes the trained est.pt weights, but not the multi-gigabyte dataset archive. See [the Chinese presentation guide](chemistry-simulator/demo/现场演示操作卡.md) for startup steps.

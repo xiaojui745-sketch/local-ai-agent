@@ -5,3 +5,11 @@ __pycache__/
 venv/
 data/
 results/
+
+# Chemistry simulation additions
+**/Chemical Apparatus Image Dataset/
+**/*.zip
+**/runs/apparatus_test/
+**/runs/**/weights/last.pt
+**/runs/**/train_batch*.jpg
+**/runs/**/val_batch*.jpg

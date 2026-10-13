@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>化学反应过程 · 简易演示</title>
+  <style>
+    :root{color-scheme:light;--ink:#182b45;--muted:#66768c;--line:#dce5ef;--blue:#2476d2;--bg:#f3f7fb}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0,#e1f0ff,transparent 34%),var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI","Microsoft YaHei",sans-serif}
+    main{max-width:1120px;margin:auto;padding:34px 22px 52px}.eyebrow{color:var(--blue);font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+    h1{font-size:clamp(28px,4vw,42px);line-height:1.15;margin:8px 0}.sub{max-width:720px;color:var(--muted);margin:0 0 24px}
+    .panel{background:#ffffffd9;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 14px 40px #243c5810}
+    .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.controls label{font-weight:700}.controls select,.controls button{font:inherit;border-radius:11px;padding:10px 14px;border:1px solid var(--line);background:white;color:var(--ink)}
+    button{cursor:pointer}.controls button.primary{background:var(--blue);border-color:var(--blue);color:white;font-weight:700}.controls button:hover{filter:brightness(.97)}
+    .equation{font:600 clamp(16px,2.3vw,22px)/1.5 "Segoe UI",sans-serif;text-align:center;padding:18px 8px 12px;color:#18395e}
+    .scene{position:relative;min-height:340px;border-radius:16px;overflow:hidden;background:linear-gradient(#eaf5ff 0%,#f7fbff 68%,#e7eef5 68%,#e7eef5 100%);display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;padding:25px 6% 35px;gap:6%;}
+    .station{text-align:center;position:relative;z-index:2}.label{margin-top:10px;font-size:14px;font-weight:700}.small{font-size:12px;color:var(--muted);font-weight:400}
+    .beaker{width:112px;height:142px;margin:0 auto;position:relative;border:4px solid #7390aa;border-top:0;border-radius:3px 3px 22px 22px;background:#ffffff88;overflow:hidden;box-shadow:inset 0 -5px #b6c8d744}
+    .beaker:before{content:"";position:absolute;top:0;left:-5px;width:116px;border-top:4px solid #7390aa;border-radius:4px}.liquid{position:absolute;left:0;right:0;bottom:0;height:54%;background:var(--liquid,#75b9ed);opacity:.76;transition:height 1s,background 1s;border-radius:0 0 17px 17px}
+    .beaker.target .liquid{height:68%}.beaker.source .liquid{height:48%}.beaker.empty .liquid{height:0}
+    .precipitate{position:absolute;left:9px;right:9px;bottom:0;height:0;background:var(--ppt,#56a9e6);border-radius:12px 12px 16px 16px;transition:height 1.4s;z-index:1}.beaker.reacted .precipitate{height:28px}
+    .powder{position:absolute;left:10px;right:10px;bottom:2px;height:0;background:#f7f5ec;border-radius:48% 48% 12px 12px;transition:height .7s;z-index:2;box-shadow:inset 0 3px #e6e2d5}.beaker.solid .powder{height:20px}.beaker.empty .powder{height:0}
+    .bubble{position:absolute;bottom:18px;width:8px;height:8px;background:#ffffffb8;border:1px solid #50a9da;border-radius:50%;opacity:0;animation:rise 1.7s infinite}.bubble:nth-child(2){left:28%;animation-delay:.4s}.bubble:nth-child(3){left:58%;animation-delay:.9s}.bubble:nth-child(4){left:77%;animation-delay:1.2s}
+    .beaker.gassing .bubble{opacity:1}@keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}25%{opacity:.9}100%{transform:translateY(-94px) scale(1.1);opacity:0}}
+    .pour{position:absolute;z-index:1;left:32%;top:38%;width:0;height:5px;border-radius:99px;background:#5aa9e8;transform:rotate(20deg);transform-origin:left;opacity:0}.scene.mixing .pour{animation:pour 1.4s ease-in-out forwards}@keyframes pour{0%{width:0;opacity:0}20%{width:16%;opacity:.95}72%{width:16%;opacity:.95}100%{width:0;opacity:0}}
+    .pour.reverse{left:68%;transform:rotate(160deg);transform-origin:right}.scene.mixing .pour.reverse{animation:pour-reverse 1.4s ease-in-out forwards}@keyframes pour-reverse{0%{width:0;opacity:0}20%{width:16%;opacity:.95}72%{width:16%;opacity:.95}100%{width:0;opacity:0}}
+    .beaker.source.tilt{transform:rotate(18deg) translate(8px,4px);transition:transform .5s}.beaker{transition:transform .5s}
+    .timeline{display:flex;justify-content:space-between;gap:10px;margin:20px 0 0;position:relative}.timeline:before{content:"";height:3px;background:var(--line);position:absolute;top:16px;left:6%;right:6%}.step{position:relative;flex:1;text-align:center;color:var(--muted);font-size:13px}.dot{position:relative;margin:6px auto 8px;border-radius:99px;width:22px;height:22px;background:#dce5ef;border:5px solid white;box-shadow:0 0 0 1px #c9d6e4}.step.active{color:var(--blue);font-weight:700}.step.active .dot{background:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+    .result{margin-top:18px;padding:14px 16px;border-radius:12px;background:#f2f7fc;border:1px solid var(--line);min-height:56px}.foot{color:var(--muted);font-size:13px;margin-top:18px}.foot strong{color:#9a5b0c}
+    .vision{margin-bottom:22px}.vision h2,.sim-title{font-size:20px;margin:0 0 5px}.vision p{color:var(--muted);margin:0 0 14px;font-size:14px}.upload-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.upload-row input{max-width:100%}.upload-row button{font:inherit;border:1px solid var(--line);background:white;border-radius:10px;padding:9px 14px;color:var(--ink);cursor:pointer}.upload-row button.primary{background:#147c70;color:white;border-color:#147c70;font-weight:700}.upload-row button:disabled{opacity:.5;cursor:wait}.vision-output{margin-top:14px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(210px,1fr);gap:16px;align-items:start}.canvas-wrap{min-height:160px;display:grid;place-items:center;background:#edf3f8;border:1px dashed #b9c8d8;border-radius:14px;overflow:hidden}.canvas-wrap canvas{display:block;max-width:100%;max-height:480px}.det-list{font-size:14px;color:var(--muted);max-height:390px;overflow:auto}.det-row{padding:8px 0;border-bottom:1px solid var(--line)}.det-row b{color:var(--ink)}.det-row span{float:right;color:#147c70;font-variant-numeric:tabular-nums}.vision-state{margin-top:10px;font-size:13px;color:var(--muted)}
+    .equation-entry{margin:14px 0 18px;padding:16px;background:#f5f9fd;border:1px solid var(--line);border-radius:14px}.equation-entry label{display:block;font-weight:700;margin-bottom:8px}.equation-entry textarea{display:block;width:100%;min-height:68px;resize:vertical;padding:11px 12px;border:1px solid #cbd8e5;border-radius:10px;font:inherit;color:var(--ink);background:white}.equation-entry .entry-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}.equation-entry button{font:inherit;border-radius:10px;padding:9px 13px;border:1px solid var(--line);background:white;color:var(--ink)}.equation-entry button.primary{background:var(--blue);border-color:var(--blue);color:white;font-weight:700}.equation-hint{font-size:13px;color:var(--muted);margin:8px 0 0}.match-state{font-size:13px;color:#147c70}
+    @media(max-width:650px){.vision-output{grid-template-columns:1fr}}
+    @media(max-width:650px){main{padding:24px 14px}.scene{min-height:285px;padding:20px 3% 25px;gap:2%}.beaker{width:78px;height:112px}.beaker:before{width:82px}.label{font-size:12px}.timeline{gap:2px}.step{font-size:11px}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Chemistry Sim · Prototype 01</div>
+  <h1>看见反应发生</h1>
+  <p class="sub">用训练好的 YOLO 识别器材，再播放小范围的预设反应动画。器材识别与化学反应过程目前是两个独立模块。</p>
+  <section class="panel" aria-label="反应演示">
+    <section class="vision" aria-label="YOLO器材识别">
+      <h2>① 用训练好的 YOLO 识别器材</h2>
+      <p>上传一张含实验器材的图片，模型会识别烧杯、试剂瓶、移液管等 7 类目标。图片只在本机 WSL 服务中处理。</p>
+      <div class="upload-row"><input id="imageFile" type="file" accept="image/jpeg,image/png,image/webp"><button id="detect" class="primary" disabled>识别图片</button><button id="clearImage">清除</button></div>
+      <div class="vision-state" id="visionState">正在检查本机 YOLO 服务……</div>
+      <div class="vision-output"><div class="canvas-wrap"><canvas id="previewCanvas" aria-label="检测框预览"></canvas></div><div class="det-list" id="detections">模型检测结果会显示在这里。</div></div>
+    </section>
+    <hr style="border:0;border-top:1px solid var(--line);margin:22px 0">
+    <h2 class="sim-title">② 播放预设反应动画</h2>
+    <div class="equation-entry">
+      <label for="equationInput">输入化学方程式</label>
+      <textarea id="equationInput" placeholder="例如：CH₃COOH + NaHCO₃ → CH₃COONa + H₂O + CO₂"></textarea>
+      <div class="entry-actions"><button id="matchEquation" class="primary">匹配演示</button><button id="analyzeWithOllama">本地 AI 分析</button><span id="matchState" class="match-state" aria-live="polite">可用规则匹配；本地 AI 可尝试判断方程式是否对应下方两种演示。</span></div>
+      <p class="equation-hint">这是本地关键词匹配，只能选择已有演示；不支持的方程式不会被当作已理解。</p>
+    </div>
+    <div class="controls">
+      <label for="reaction">选择反应</label>
+      <select id="reaction">
+        <option value="gas">醋酸 + 碳酸氢钠（气泡）</option>
+        <option value="ppt">硫酸铜溶液 + 氢氧化钠溶液（沉淀）</option>
+      </select>
+      <button class="primary" id="play">▶ 开始演示</button>
+      <button id="reset">↻ 重置</button>
+    </div>
+    <div class="equation" id="equation"></div>
+    <div class="scene" id="scene">
+      <div class="station"><div class="beaker source" id="left"><div class="liquid"></div><div class="powder"></div><div class="precipitate"></div><i class="bubble"></i><i class="bubble"></i><i class="bubble"></i><i class="bubble"></i></div><div class="label" id="leftName"></div></div>
+      <div class="station"><div class="beaker target" id="center"><div class="liquid"></div><div class="powder"></div><div class="precipitate"></div><i class="bubble"></i><i class="bubble"></i><i class="bubble"></i><i class="bubble"></i></div><div class="label">反应烧杯<br><span class="small">混合区域</span></div></div>
+      <div class="station"><div class="beaker source" id="right"><div class="liquid"></div><div class="powder"></div><div class="precipitate"></div><i class="bubble"></i><i class="bubble"></i><i class="bubble"></i><i class="bubble"></i></div><div class="label" id="rightName"></div></div>
+      <div class="pour"></div><div class="pour reverse"></div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+    <div class="result" id="result" aria-live="polite">准备就绪。点击“开始演示”播放反应过程。</div>
+    <p class="foot"><strong>说明：</strong>YOLO 只识别器材画面；反应动画由预设规则触发，不代表模型理解了化学方程式。它是课堂展示用的定性示意，不代表真实实验的比例、速度或精确颜色，也不提供实际操作步骤。</p>
+  </section>
+</main>
+<script>
+const data={
+  gas:{names:['醋酸溶液（无色）','碳酸氢钠（白色固体）'],equation:'CH₃COOH(aq) + NaHCO₃(s) → CH₃COONa(aq) + H₂O(l) + CO₂(g)',color:'#c8e5f7',ppt:false,gas:true,rightSolid:true,steps:['准备反应物','倒入并混合','二氧化碳气泡出现'],message:'混合后产生二氧化碳气泡；液体整体仍以无色/浅色示意。'},
+  ppt:{names:['硫酸铜溶液（蓝色）','氢氧化钠溶液（无色）'],equation:'CuSO₄(aq) + 2 NaOH(aq) → Cu(OH)₂(s)↓ + Na₂SO₄(aq)',color:'#63a9e7',ppt:true,gas:false,rightSolid:false,steps:['准备两种溶液','倒入并混合','浅蓝色沉淀生成'],message:'混合后形成浅蓝色氢氧化铜沉淀，沉降在烧杯底部。'}
+};
+const $=id=>document.getElementById(id), reaction=$('reaction'), scene=$('scene'), left=$('left'), center=$('center'), right=$('right');let timer=[];
+function normalizeFormula(value){return value.toLowerCase().replace(/[₀₁₂₃₄₅₆₇₈₉]/g,c=>'₀₁₂₃₄₅₆₇₈₉'.indexOf(c)).replace(/[\s()（）]/g,'').replace(/[→⟶⟹=]/g,'>').replace(/\+/g,'+').replace(/\[[^\]]*\]/g,'')}
+function matchEquation(){const raw=$('equationInput').value.trim();const text=normalizeFormula(raw);if(!raw){$('matchState').textContent='请先输入方程式，或输入反应物名称。';return}let match='';if((text.includes('ch₃cooh')||text.includes('ch3cooh')||raw.includes('醋酸'))&&(text.includes('nahco₃')||text.includes('nahco3')||raw.includes('碳酸氢钠'))){match='gas'}else if((text.includes('cuso₄')||text.includes('cuso4')||raw.includes('硫酸铜'))&&(text.includes('naoh')||raw.includes('氢氧化钠'))){match='ppt'}if(!match){$('matchState').textContent='暂不支持这个反应。当前可试：醋酸 + 碳酸氢钠，或硫酸铜 + 氢氧化钠。';return}reaction.value=match;reset();$('matchState').textContent=`已匹配“${match==='gas'?'醋酸 + 碳酸氢钠（气泡）':'硫酸铜 + 氢氧化钠（沉淀）'}”。点击“开始演示”播放。`}
+$('matchEquation').addEventListener('click',matchEquation);
+async function analyzeWithOllama(){const equation=$('equationInput').value.trim();if(!equation){$('matchState').textContent='请先输入化学方程式。';return}const button=$('analyzeWithOllama');button.disabled=true;$('matchState').textContent='正在请求本机 qwen3:8b，请稍候……';const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),120000);try{const response=await fetch('http://localhost:11434/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({model:'qwen3:8b',stream:false,think:false,format:{type:'object',properties:{reaction:{type:'string',enum:['gas','ppt','unknown']},reason:{type:'string'}},required:['reaction','reason'],additionalProperties:false},messages:[{role:'system',content:'你是一个受限的化学演示路由器。只判断给定方程式是否对应以下预设之一：gas=醋酸与碳酸氢钠产生二氧化碳气泡；ppt=硫酸铜与氢氧化钠产生浅蓝色氢氧化铜沉淀；否则 reaction=unknown。不得提供实验步骤、剂量或安全结论。只输出符合 JSON schema 的对象，reason 用简短中文说明。不要因为用户要求就强行匹配。'},{role:'user',content:`判断这个化学方程式：${equation}`}],options:{temperature:0}})});if(!response.ok)throw new Error(`Ollama 返回 HTTP ${response.status}`);const payload=await response.json();const parsed=JSON.parse(payload.message.content);if(parsed.reaction!=='gas'&&parsed.reaction!=='ppt'){$('matchState').textContent=`本地 AI 判断暂不支持此反应。${parsed.reason||''} 当前动画仍只有气泡和沉淀两种。`;return}reaction.value=parsed.reaction;reset();$('matchState').textContent=`本地 qwen3:8b 建议使用“${parsed.reaction==='gas'?'醋酸 + 碳酸氢钠（气泡）':'硫酸铜 + 氢氧化钠（沉淀）'}”。${parsed.reason||''} 请核对后点击“开始演示”。`}catch(error){$('matchState').textContent=error.name==='AbortError'?'本地 AI 响应超时。请确认 Ollama 正在运行，再试一次。':`本地 AI 连接失败：${error.message}。请确认 Ollama 正在运行。`}finally{clearTimeout(timeout);button.disabled=false}}
+$('analyzeWithOllama').addEventListener('click',analyzeWithOllama);
+const fileInput=$('imageFile'), detectButton=$('detect'), canvas=$('previewCanvas'), ctx=canvas.getContext('2d');let selectedImage=null;
+fetch('/health').then(r=>r.ok?r.json():Promise.reject()).then(()=>{$('visionState').textContent='YOLO 服务已连接（CUDA 0）。选择图片后可开始识别。'}).catch(()=>{$('visionState').textContent='尚未连接 YOLO 服务。请先运行 demo\\start-demo.ps1，然后刷新本页。'});
+fileInput.addEventListener('change',()=>{const file=fileInput.files[0];selectedImage=null;detectButton.disabled=true;ctx.clearRect(0,0,canvas.width,canvas.height);$('detections').textContent='模型检测结果会显示在这里。';if(!file)return;if(file.size>15*1024*1024){$('visionState').textContent='图片不能超过 15 MB。';fileInput.value='';return}const image=new Image();image.onload=()=>{selectedImage=image;canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;ctx.drawImage(image,0,0);detectButton.disabled=false;$('visionState').textContent=`已载入 ${file.name}（${image.naturalWidth} × ${image.naturalHeight}）。点击“识别图片”。`};image.onerror=()=>{$('visionState').textContent='无法预览此图片，请换一张 JPG、PNG 或 WebP 图片。'};image.src=URL.createObjectURL(file)});
+detectButton.addEventListener('click',async()=>{const file=fileInput.files[0];if(!file||!selectedImage)return;detectButton.disabled=true;$('visionState').textContent='正在用 best.pt 推理……';$('detections').textContent='识别中…';try{const response=await fetch('/predict',{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream'},body:file});const result=await response.json();if(!response.ok)throw new Error(result.error||'请求失败');ctx.drawImage(selectedImage,0,0);ctx.lineWidth=Math.max(2,Math.round(canvas.width/400));ctx.font=`bold ${Math.max(14,Math.round(canvas.width/55))}px Segoe UI, sans-serif`;ctx.textBaseline='top';ctx.fillStyle='#13a88a';$('detections').textContent='';if(!result.detections.length){$('detections').textContent='没有检测到训练类别。可换一张器材更清晰的照片。'}for(const item of result.detections){const [x1,y1,x2,y2]=item.xyxy;const color='#13a88a';ctx.strokeStyle=color;ctx.strokeRect(x1,y1,x2-x1,y2-y1);const label=`${item.name} ${(item.confidence*100).toFixed(0)}%`;const lineHeight=Math.max(17,Math.round(canvas.width/55));const tw=ctx.measureText(label).width;const labelY=Math.max(0,y1-lineHeight);ctx.fillStyle=color;ctx.fillRect(x1,labelY,tw+10,lineHeight+4);ctx.fillStyle='white';ctx.fillText(label,x1+5,labelY+2);const row=document.createElement('div');row.className='det-row';const name=document.createElement('b'),confidence=document.createElement('span');name.textContent=item.name;confidence.textContent=`${(item.confidence*100).toFixed(1)}%`;row.append(name,confidence);$('detections').appendChild(row)}$('visionState').textContent=`完成：${result.count} 个检测框。`; }catch(error){$('visionState').textContent=`识别失败：${error.message}`}finally{detectButton.disabled=false}});
+$('clearImage').addEventListener('click',()=>{fileInput.value='';selectedImage=null;detectButton.disabled=true;canvas.width=0;canvas.height=0;$('detections').textContent='模型检测结果会显示在这里。';$('visionState').textContent='图片已清除。'});
+function reset(){timer.forEach(clearTimeout);timer=[];scene.classList.remove('mixing');[left,center,right].forEach(x=>x.classList.remove('tilt','reacted','gassing','empty','solid'));let d=data[reaction.value];center.style.setProperty('--liquid','#ffffff');left.style.setProperty('--liquid',d.color);right.style.setProperty('--liquid',d.rightSolid?'#ffffff':d.color);if(d.rightSolid)right.classList.add('solid');update();$('result').textContent='准备就绪。点击“开始演示”播放反应过程。';$('play').disabled=false}
+function update(){let d=data[reaction.value];$('equation').textContent=d.equation;$('leftName').innerHTML=d.names[0]+'<br><span class="small">左侧烧杯</span>';$('rightName').innerHTML=d.names[1]+'<br><span class="small">右侧烧杯</span>';center.style.setProperty('--ppt',d.ppt?'#76b9f2':'#4daee0');$('timeline').innerHTML=d.steps.map((s,i)=>`<div class="step" id="step${i}"><div class="dot"></div>${s}</div>`).join('')}
+function step(i,msg){document.querySelectorAll('.step').forEach((e,n)=>e.classList.toggle('active',n===i));$('result').textContent=msg}
+function play(){reset();$('play').disabled=true;let d=data[reaction.value];step(0,'反应物已准备。接下来展示混合过程。');timer.push(setTimeout(()=>{left.classList.add('tilt');right.classList.add('tilt');scene.classList.add('mixing');step(1,'两份反应物正在进入反应烧杯……');},900));timer.push(setTimeout(()=>{left.classList.add('empty');right.classList.add('empty');left.classList.remove('tilt');right.classList.remove('tilt');center.classList.add(d.ppt?'reacted':'gassing');center.style.setProperty('--liquid',d.ppt?'#93c9ee':'#b7dff0');step(2,d.message);$('play').disabled=false;},2500))}
+reaction.addEventListener('change',reset);$('reset').addEventListener('click',reset);$('play').addEventListener('click',play);update();reset();
+</script>
+</body>
+</html>

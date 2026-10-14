@@ -1,68 +1,35 @@
-# 本地 Ollama CLI 智能体
+# Chemistry Simulator: YOLO Apparatus Demo
 
-这是一个运行在 Windows PowerShell 中的本地工具调用智能体。它通过 Ollama 的本机 API 使用 `qwen3:8b`，并能根据问题决定是否调用本地时间和安全计算工具。
+A local prototype that combines a trained YOLO11n detector for laboratory apparatus with a browser-based chemistry animation demo.
 
-## 能做什么
+## Included
 
-- 多轮中文对话，保留当前会话上下文。
-- 根据问题调用 `get_local_time` 查询本机时间。
-- 根据问题调用 `calculate` 计算四则运算表达式。
-- 不安装 Python 包，不需要云端 API Key；模型请求发往本机 Ollama。
+- `demo/index.html`: browser UI for apparatus detection and two preset reaction animations.
+- `demo/server.py`: localhost-only image inference service.
+- `demo/start-demo.bat` and `demo/start-demo.ps1`: launchers for Windows + WSL.
+- `demo/现场演示操作卡.md`: step-by-step Chinese presentation instructions.
+- `runs/apparatus_v1/weights/best.pt`: trained detector checkpoint.
+- `runs/apparatus_v1/results.csv`, `results.png`, and `confusion_matrix_normalized.png`: training and validation summaries.
 
-## 前置条件
+The original 4.49 GB dataset and its archive are not included. Dataset source: [Annotated Chemical Apparatus Image Dataset](https://data.mendeley.com/datasets/8p2hvgdvpn/1), DOI [10.17632/8p2hvgdvpn.1](https://doi.org/10.17632/8p2hvgdvpn.1), licensed CC BY 4.0. The dataset attribution and license should be retained when redistributing dataset-derived materials.
 
-1. Windows PowerShell 5.1 或更新版本。
-2. Ollama 正在运行，且已下载 `qwen3:8b`。
-3. 默认 API 地址为 `http://127.0.0.1:11434`。
+## Results
 
-## 启动
+The YOLO11n model was trained for 30 epochs. Validation metrics: mAP@0.5 **0.8391**, mAP@0.5:0.95 **0.6801**. It detects seven visual classes: hands, conical beakers, Erlenmeyer flasks, reagent bottles, pipettes, eggplant-shaped flasks, and separatory funnels. These metrics describe apparatus detection only; they do not measure chemical understanding.
 
-在项目根目录打开 PowerShell：
+## Demo scope
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\src\agent.ps1
-```
+The page supports image upload and local YOLO inference, plus two schematic reaction animations:
 
-输入问题开始对话；输入 `/reset` 清空当前上下文，输入 `/exit` 退出。
+1. Acetic acid + sodium bicarbonate: gas bubbles.
+2. Copper sulfate + sodium hydroxide: pale-blue precipitate.
 
-可以通过环境变量更换模型或 API 地址：
+The local Ollama integration routes equations to one of these presets. It does not validate arbitrary chemistry or generate new reaction mechanisms. Animations are qualitative educational illustrations, not real laboratory procedures or quantitative predictions.
 
-```powershell
-$env:OLLAMA_MODEL = "qwen3:8b"
-$env:OLLAMA_BASE_URL = "http://127.0.0.1:11434"
-powershell -NoProfile -ExecutionPolicy Bypass -File .\src\agent.ps1
-```
+## Running on the original development computer
 
-## 项目结构
+Requirements: Windows with WSL Ubuntu, the project Python environment at `/home/xiaohui/yolo/.venv`, the trained checkpoint at `runs/apparatus_v1/weights/best.pt`, and Ollama with `qwen3:8b` for the local equation-analysis button.
 
-```text
-ollama-cli-agent/
-├── README.md
-├── .gitignore
-├── docs/
-│   └── progress.md
-└── src/
-    └── agent.ps1
-```
+From the repository root, launch `chemistry-simulator/demo/start-demo.bat` and keep its terminal open. Then open `http://localhost:8765/` in a browser. The demo server binds only to `127.0.0.1`. Start Ollama separately before using local equation analysis. See the presentation card for click-by-click instructions.
 
-## 智能体工作方式
-
-程序把用户消息、系统提示和工具说明发给 Ollama。模型可以直接回答，也可以返回工具调用。程序只执行白名单中的两个本地工具，再把结果交回模型生成最终答复。计算器只接受数字、括号和 `+ - * / %`，不会执行任意 PowerShell 命令。
-
-## AI 使用说明
-
-本项目使用本地 Ollama 模型 `qwen3:8b` 作为推理服务。代码框架和文档由 Codex 协助生成；工具执行由本地脚本完成。当前版本不调用云端模型，也不联网查询。
-
-## Git 记录
-
-```powershell
-git init
-git add README.md .gitignore docs src
-git commit -m "Build local Ollama CLI agent"
-```
-
-配置个人 GitHub 远端后，再推送到自己的仓库。
-
-## Chemistry simulator prototype
-
-The repository also contains a local YOLO apparatus detector and chemistry-animation demo in [chemistry-simulator](chemistry-simulator/README.md). Training metrics and demo outcomes are summarized in [docs/chemistry-simulation/2026-10-13-demo-results.md](docs/chemistry-simulation/2026-10-13-demo-results.md). The project includes the trained est.pt weights, but not the multi-gigabyte dataset archive. See [the Chinese presentation guide](chemistry-simulator/demo/现场演示操作卡.md) for startup steps.
+For a different computer, install compatible Ultralytics/PyTorch/Pillow dependencies in WSL and update the launcher’s WSL Python path as needed.

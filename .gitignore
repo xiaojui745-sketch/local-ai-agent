@@ -1,15 +1,7 @@
-.env
-*.log
-__pycache__/
-.venv/
-venv/
-data/
-results/
-
-# Chemistry simulation additions
-**/Chemical Apparatus Image Dataset/
-**/*.zip
-**/runs/apparatus_test/
-**/runs/**/weights/last.pt
-**/runs/**/train_batch*.jpg
-**/runs/**/val_batch*.jpg
+# Keep the raw training dataset and bulk prediction images out of Git.
+Chemical Apparatus Image Dataset/
+*.zip
+runs/apparatus_test/
+runs/**/weights/last.pt
+runs/**/train_batch*.jpg
+runs/**/val_batch*.jpg
